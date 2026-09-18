@@ -64,7 +64,12 @@ class MiniLMEmbedder:
         self._fn = embedding_functions.DefaultEmbeddingFunction()
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-           return [v.tolist() if hasattr(v, "tolist") else list(v) for v in self._fn(texts)]
+        # .tolist() on a numpy array gives native Python floats. list(v) on a
+        # numpy array instead yields a list of np.float32 *objects*, which
+        # newer chromadb versions reject at the validation step (their type
+        # check wants a plain float/int list, a numpy array, or a list of
+        # numpy arrays - not a Python list containing numpy scalars).
+        return [v.tolist() if hasattr(v, "tolist") else list(v) for v in self._fn(texts)]
 
 
 _cached: Embedder | None = None

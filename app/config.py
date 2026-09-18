@@ -49,6 +49,9 @@ class Settings:
     # Embeddings
     embedding_backend: str = field(default_factory=lambda: _env("EMBEDDING_BACKEND", "minilm"))
 
+    # LLM: "openrouter" (real) or "stub" (offline, see app/llm.py docstring)
+    llm_backend: str = field(default_factory=lambda: _env("LLM_BACKEND", "openrouter"))
+
     # Vector store
     chroma_path: Path = field(
         default_factory=lambda: (PROJECT_ROOT / _env("CHROMA_PATH", "./data/chroma")).resolve()

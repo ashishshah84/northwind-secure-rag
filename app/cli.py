@@ -3,6 +3,7 @@
   python -m app.cli ingest [--include-poisoned] [--no-reset]
   python -m app.cli stats
   python -m app.cli search "<query>" --role employee|hr [--mode vulnerable|secure] [-k N]
+  python -m app.cli ask "<query>" --role employee|hr [--mode vulnerable|secure]
   python -m app.cli roles
 """
 from __future__ import annotations
@@ -84,6 +85,31 @@ def cmd_search(args) -> int:
     return 0
 
 
+def cmd_ask(args) -> int:
+    from .rag import answer
+
+    result = answer(args.query, role=args.role, mode=args.mode)
+
+    print(f"query        : {result.query!r}")
+    print(f"role         : {result.role}")
+    print(f"mode         : {result.mode}")
+    print(f"llm          : {result.llm_backend}")
+    print(f"retrieved    : {[c['metadata']['doc_id'] for c in result.retrieval.chunks]}")
+    if result.leaked_doc_ids:
+        print(f"!! leaked    : {result.leaked_doc_ids}")
+    print("-" * 78)
+    print(result.final_answer)
+    print("-" * 78)
+    print(f"guard safe   : {result.guard.safe}")
+    if result.guard.findings:
+        print(f"guard notes  : {result.guard.findings}")
+    print(f"latency      : {result.latency_s:.2f}s")
+
+    # guard.safe is always True when the guard didn't run (vulnerable mode), so
+    # this only flags a real problem: a retrieval leak, or a guard-caught finding.
+    return 2 if (result.leaked_doc_ids or not result.guard.safe) else 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="northwind-rag", description="Secure RAG lab")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -106,6 +132,12 @@ def main(argv=None) -> int:
     pq.add_argument("--mode", default=None, choices=["vulnerable", "secure"])
     pq.add_argument("-k", type=int, default=None)
     pq.set_defaults(func=cmd_search)
+
+    pa = sub.add_parser("ask", help="full pipeline: retrieve, prompt, LLM, guard")
+    pa.add_argument("query")
+    pa.add_argument("--role", default="employee", choices=sorted(ROLES))
+    pa.add_argument("--mode", default=None, choices=["vulnerable", "secure"])
+    pa.set_defaults(func=cmd_ask)
 
     args = p.parse_args(argv)
     return args.func(args)
