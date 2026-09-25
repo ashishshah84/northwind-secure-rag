@@ -105,6 +105,21 @@ def chunk_text(body: str, size: int, overlap: int) -> list[str]:
     return final
 
 
+def _display_path(path: Path) -> str:
+    """Project-relative path where possible, absolute otherwise.
+
+    relative_to() raises when the document lives outside the project - which
+    happens for generated corpora (see attacks/attack_09_retrieval_crowding.py,
+    which builds flood documents in a temp directory). The path here is a
+    provenance label for the evidence record, not a control, so degrading to an
+    absolute path is the correct behaviour; raising is not.
+    """
+    try:
+        return str(path.resolve().relative_to(settings.corpus_clean.parent.parent))
+    except ValueError:
+        return str(path.resolve())
+
+
 def load_document(path: Path, trust: str) -> list[Chunk]:
     raw = path.read_text(encoding="utf-8")
     meta, body = parse_front_matter(raw, path)
@@ -116,7 +131,7 @@ def load_document(path: Path, trust: str) -> list[Chunk]:
         "allowed_roles": meta["allowed_roles"],
         "owner": meta.get("owner", "unknown"),
         "source": meta.get("source", "unknown"),
-        "path": str(path.relative_to(settings.corpus_clean.parent.parent)),
+        "path": _display_path(path),
         "trust": trust,
         "ingested_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
     }

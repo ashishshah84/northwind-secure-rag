@@ -8,6 +8,14 @@ those questions. This tests the vector store directly, not generation: does a
 crafted document pollute nearest-neighbour search for topics it has nothing to
 do with?
 
+This attack does NOT use the TRIALS repetition the other four do, and that is
+the point rather than an oversight: there is no model in the loop, so there is
+nothing to vary. Cosine similarity over a fixed index returns the same ranking
+every time. It reproduced identically across five separate runs - same query,
+same rank 4 - which is exactly what you would expect and exactly what makes it
+different in kind from the probabilistic findings elsewhere in this suite. A
+deterministic finding needs one run; a probabilistic one needs a rate.
+
 Deliberately run at the retrieval layer (app/retriever.py), not through the
 LLM, because this is a property of the embedding/index, independent of what a
 model does with the results afterwards - and independent of the role filter,

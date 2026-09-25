@@ -29,12 +29,31 @@ from attacks import (  # noqa: E402
     attack_03_data_poisoning as a3,
     attack_04_context_exfiltration as a4,
     attack_05_embedding_weaknesses as a5,
+    attack_06_system_prompt_leakage as a6,
+    attack_07_role_escalation as a7,
+    attack_08_chunk_split_injection as a8,
+    attack_09_retrieval_crowding as a9,
 )
 
 
 def main() -> None:
     llm = get_llm()
     print(f"LLM backend : {llm.name}")
+    print(f"Model       : {settings.openrouter_model if llm.name == 'openrouter' else 'n/a'}")
+    print(f"Trials/case : {settings.trials}")
+    if settings.trials == 1:
+        print(
+            "\n  NOTE: TRIALS=1. Model behaviour under attack is not deterministic -\n"
+            "  a single run tells you what happened once, not whether a mitigation\n"
+            "  works. Set TRIALS=10 in .env before collecting evidence for the\n"
+            "  report."
+        )
+    est = settings.trials * 2 * 13  # 13 LLM-backed cases across attacks 1,2,3,4,6,7,8
+    print(
+        f"\n  Budget: roughly {est} API calls at TRIALS={settings.trials}. The free tier\n"
+        f"  allows 50/day. Above that, run attacks individually - attacks 5 and 9\n"
+        f"  are retrieval-only and cost nothing."
+    )
     if llm.name == "stub":
         print(
             "\n  WARNING: LLM_BACKEND=stub - results below exercise the pipeline "
@@ -47,7 +66,7 @@ def main() -> None:
     print(f"documents={result['documents']} chunks={result['chunks']} "
           f"embedder={result['stats']['embedder']}\n")
 
-    for module in (a1, a2, a3, a4, a5):
+    for module in (a1, a2, a3, a4, a5, a6, a7, a8, a9):
         module.main()
 
     print("\n" + "=" * 78)

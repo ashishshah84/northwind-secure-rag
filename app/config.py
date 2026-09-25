@@ -61,6 +61,15 @@ class Settings:
     # Security posture: "vulnerable" or "secure"
     security_mode: str = field(default_factory=lambda: _env("SECURITY_MODE", "vulnerable"))
 
+    # How many times to repeat each attack case. Model behaviour under attack is
+    # not deterministic even at temperature 0.2 - across four single-shot runs of
+    # this suite, attack 1 complied in vulnerable mode 3 times out of 4, and
+    # attack 4's tool-call attempt appeared once in three. A single run cannot
+    # tell you whether a mitigation works, only whether it worked once. Set
+    # TRIALS=10 in .env before collecting evidence for the report; keep it at 1
+    # for quick iteration (and mind the free tier's 50 requests/day).
+    trials: int = field(default_factory=lambda: max(1, int(_env("TRIALS", "1") or 1)))
+
     # Retrieval
     top_k: int = 4
     chunk_chars: int = 600

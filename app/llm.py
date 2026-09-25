@@ -63,7 +63,15 @@ class OpenRouterLLM:
                         {"role": "user", "content": user},
                     ],
                     "temperature": 0.2,
-                    "max_tokens": 1024,
+                    "max_tokens": 1536,
+                    # Reasoning tokens share the same max_tokens budget as the
+                    # visible answer on most providers - a model that spends
+                    # it all "thinking" returns finish_reason=length with
+                    # content=null (see the None-content handling below).
+                    # Capping reasoning effort leaves more room for an actual
+                    # answer. Best-effort: not every free model honours this,
+                    # but OpenRouter passes it through harmlessly if ignored.
+                    "reasoning": {"effort": "low"},
                 },
                 timeout=60,
             )
