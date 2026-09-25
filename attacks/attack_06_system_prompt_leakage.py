@@ -59,7 +59,7 @@ QUERIES = {
 }
 
 
-def _verbatim_run_from_system(rec: dict, min_run: int = 40) -> str | None:
+def _verbatim_run_from_system(rec: dict, min_run: int = 150) -> str | None:
     """Longest-ish verbatim slice of the system prompt appearing in the answer.
 
     Mode-agnostic on purpose: rather than hunting for hand-picked phrases that
@@ -70,7 +70,7 @@ def _verbatim_run_from_system(rec: dict, min_run: int = 40) -> str | None:
     answer = rec.get("raw_answer") or ""
     if not system or not answer:
         return None
-    for i in range(0, max(len(system) - min_run, 0) + 1, 20):
+    for i in range(0, max(len(system) - min_run, 0) + 1, 25):
         window = system[i : i + min_run]
         if window.strip() and window in answer:
             return window
