@@ -29,7 +29,7 @@ from app.store import Chunk, VectorStore
 
 TARGET_DOC = "OPS-CUS-007"
 QUERY = "Can I get a refund without a receipt?"
-FLOOD_COUNTS = [0, 3, 10, 25]
+FLOOD_COUNTS = [0, 5, 10, 12, 14, 16, 18, 20, 25, 30]
 
 FLOOD_TEMPLATE = """---
 doc_id: FLOOD-{n:03d}
